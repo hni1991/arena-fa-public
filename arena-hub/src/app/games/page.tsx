@@ -7,11 +7,13 @@ import { supabase } from "@/lib/supabaseClient";
 type Game = {
   id: string;
   title: string;
+  slug: string | null;
   active: boolean;
-  banner_path?: string | null;   // اختیاری
+  banner_url: string | null;   // آدرس مستقیم (http…)
+  banner_path: string | null;  // مسیر داخل باکت
 };
 
-const BANNERS_BUCKET = "game-banners"; // اگر متفاوت است، تغییر بده
+const BANNERS_BUCKET = "game-banners"; // اگر باکتت "games" است اینجا عوض کن
 
 export default function GamesIndexPage() {
   const [rows, setRows] = useState<Game[]>([]);
@@ -20,27 +22,27 @@ export default function GamesIndexPage() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("games")
-        .select("id,title,active,banner_path")
+        .select("id,title,slug,active,banner_url,banner_path")
         .order("title");
-      setRows((data as Game[]) || []);
+      if (!error) setRows((data as Game[]) || []);
     })();
   }, []);
 
-  // امضای بنرها (lazy پس از لود لیست)
+  // امضای بنرهایی که URL عمومی ندارند
   useEffect(() => {
     let ignore = false;
     (async () => {
-      const toSign = rows.filter(r => r.banner_path && !r.banner_path.startsWith("http"));
-      const entries = await Promise.all(toSign.map(async g => {
+      const toSign = rows.filter(r => !r.banner_url && r.banner_path);
+      const signedPairs = await Promise.all(toSign.map(async g => {
         const { data } = await supabase.storage.from(BANNERS_BUCKET)
           .createSignedUrl(g.banner_path!, 3600);
         return [g.id, data?.signedUrl || ""] as const;
       }));
       if (!ignore) {
         const map: Record<string, string> = {};
-        entries.forEach(([id, url]) => { if (url) map[id] = url; });
+        signedPairs.forEach(([id,url]) => { if (url) map[id] = url; });
         setSigned(map);
       }
     })();
@@ -50,7 +52,7 @@ export default function GamesIndexPage() {
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return rows;
-    return rows.filter(r => r.title.toLowerCase().includes(s));
+    return rows.filter(r => r.title.toLowerCase().includes(s) || (r.slug||"").includes(s));
   }, [rows, q]);
 
   return (
@@ -62,24 +64,21 @@ export default function GamesIndexPage() {
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map(g => (
-          <Link key={g.id} href={`/games/${g.id}`} className="card overflow-hidden hover:bg-white/5">
-            <div className="aspect-[16/9] w-full bg-black/30">
-              {g.banner_path ? (
-                <img
-                  src={g.banner_path.startsWith("http") ? g.banner_path : (signed[g.id] || "")}
-                  alt={g.title}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              ) : null}
-            </div>
-            <div className="p-3 flex items-center justify-between">
-              <div className="font-bold">{g.title}</div>
-              <span className={`chip ${g.active ? "chip-primary" : ""}`}>{g.active ? "فعال" : "غیرفعال"}</span>
-            </div>
-          </Link>
-        ))}
+        {filtered.map(g => {
+          const cover = g.banner_url || (g.banner_path ? signed[g.id] : "");
+          const href = g.slug ? `/games/${g.slug}` : `/games/${g.id}`;
+          return (
+            <Link key={g.id} href={href} className="card overflow-hidden hover:bg-white/5">
+              <div className="aspect-[16/9] w-full bg-black/30">
+                {cover ? <img src={cover} alt={g.title} className="w-full h-full object-cover" loading="lazy" /> : null}
+              </div>
+              <div className="p-3 flex items-center justify-between">
+                <div className="font-bold">{g.title}</div>
+                <span className={`chip ${g.active ? "chip-primary" : ""}`}>{g.active ? "فعال" : "غیرفعال"}</span>
+              </div>
+            </Link>
+          );
+        })}
         {filtered.length === 0 && <div className="card p-4 opacity-70">بازی‌ای مطابق جستجو پیدا نشد.</div>}
       </section>
     </div>

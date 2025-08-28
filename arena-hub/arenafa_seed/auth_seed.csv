@@ -1,0 +1,14 @@
+email,password,username,role,is_admin
+admin@example.com,22334455,admin,admin,true
+mod@example.com,22334455,moderator,moderator,false
+youtuber@example.com,22334455,youtuber,youtuber,false
+gnet@example.com,22334455,gamenet,gamenet,false
+player1@example.com,22334455,player1,player,false
+player2@example.com,22334455,player2,player,false
+player3@example.com,22334455,player3,player,false
+player4@example.com,22334455,player4,player,false
+player5@example.com,22334455,player5,player,false
+player6@example.com,22334455,player6,player,false
+player7@example.com,22334455,player7,player,false
+player8@example.com,22334455,player8,player,false
+player9@example.com,22334455,player9,player,false

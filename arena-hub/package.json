@@ -6,26 +6,53 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint && stylelint \"src/**/*.css\"",
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit",
+    "prepare": "husky install",
+    "seed:auth": "node scripts/seed.js auth",
+    "seed:data": "node scripts/seed.js data",
+    "seed:all": "node scripts/seed.js all"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.55.0",
-    "git": "^0.1.5",
+    "csv-parse": "^5.5.6",
+    "csv-stringify": "^6.5.0",
+    "dotenv": "^16.4.5",
     "lucide-react": "^0.541.0",
     "next": "15.5.0",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "sharp": "^0.33.5",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
+    "@typescript-eslint/eslint-plugin": "^8.7.0",
+    "@typescript-eslint/parser": "^8.7.0",
     "autoprefixer": "^10.4.21",
-    "eslint": "^9",
+    "eslint": "^9.11.0",
     "eslint-config-next": "15.5.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
     "postcss": "^8.5.6",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.9",
+    "stylelint": "^16.8.0",
+    "stylelint-config-standard": "^36.0.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.9.2"
-  }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
+    "*.{css,md,json}": ["prettier --write"]
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "browserslist": ["defaults", "not IE 11", "maintained node versions"]
 }

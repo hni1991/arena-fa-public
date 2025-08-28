@@ -1,0 +1,10 @@
+[
+  {
+    "email": "admin@example.com",
+    "error": "Database error creating new user"
+  },
+  {
+    "email": "mod@example.com",
+    "error": "Database error creating new user"
+  }
+]
