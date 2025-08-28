@@ -21,3 +21,5 @@ jobs:
           # ریموت عمومی را با PAT ست کن تا احراز هویت داشته باشی
           git remote add public https://x-access-token:${TOKEN}@${MIRROR_URL#https://}
           git push --mirror public
+
+
