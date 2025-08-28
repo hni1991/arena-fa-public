@@ -24,3 +24,7 @@ jobs:
           git config user.email "mirror@users.noreply.github.com"
           git remote add public https://$PUBLIC_PAT@github.com/hni1991/arena-fa-public.git || true
           git push public HEAD:main --force
+
+
+
+          
