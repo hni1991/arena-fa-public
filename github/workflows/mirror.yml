@@ -16,8 +16,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false  # نذار GITHUB_TOKEN روی remote ست بشه
-
+          persist-credentials: false  
       - name: Make sure secrets are not tracked
         run: |
           git rm -r --cached .env* 2>/dev/null || true
