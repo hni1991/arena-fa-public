@@ -1,23 +1,32 @@
 name: Mirror to public
+
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
+
 permissions:
   contents: read
+
 jobs:
   mirror:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # همه رفرنس‌ها لازم است
-      - name: Push mirror
-        env:
-          MIRROR_URL: https://github.com/hni1991/arena-fa-public.git
-          TOKEN: ${{ secrets.MIRROR_PAT }}
+          fetch-depth: 0
+          persist-credentials: false  # نذار GITHUB_TOKEN روی remote ست بشه
+
+      - name: Make sure secrets are not tracked
         run: |
-          git config user.name  "mirror-bot"
-          git config user.email "mirror@users.noreply.github.com"
-          # ریموت عمومی را با PAT ست کن تا احراز هویت داشته باشی
-          git remote add public https://x-access-token:${TOKEN}@${MIRROR_URL#https://}
-          git push --mirror public
+          git rm -r --cached .env* 2>/dev/null || true
+          echo -e "\n.env\n.env.*\n.supabase/*\n" >> .gitignore
+
+      - name: Push to public mirror
+        env:
+          PUBLIC_URL: https://x-access-token:${{ secrets.MIRROR_PAT }}@github.com/hni1991/arena-fa-public.git
+        run: |
+          git remote add mirror "$PUBLIC_URL" || git remote set-url mirror "$PUBLIC_URL"
+          # همه‌ی برنچ‌ها و تگ‌ها:
+          git push --mirror mirror
