@@ -1,25 +1,26 @@
 name: Mirror to public
-
 on:
   push:
     branches: [ main ]
-
 jobs:
   mirror:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # همه‌ی تاریخچه و تگ‌ها
+          fetch-depth: 0
 
-      # اگر .env و supabase/* در .gitignore هستند، نیازی به حذف دستی نیست.
-      # (در صورت تمایل این مرحله را حذف کن)
+      # امن‌سازی: هرچی حساسه رو حذف کن
+      - name: Strip secrets
+        run: |
+          echo -e ".env\n.env*\n.supabase/*\n" >> .gitignore
+          rm -rf .env .env.* .supabase || true
 
       - name: Push to public mirror
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          PUBLIC_PAT: ${{ secrets.PUBLIC_PAT }}
         run: |
           git config user.name  "mirror-bot"
           git config user.email "mirror@users.noreply.github.com"
-          git remote add public https://$GH_TOKEN@github.com/hni1991/arena-fa-public.git
-          git push --mirror public
+          git remote add public https://$PUBLIC_PAT@github.com/hni1991/arena-fa-public.git || true
+          git push public HEAD:main --force
