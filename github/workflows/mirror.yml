@@ -28,8 +28,7 @@ jobs:
           PUBLIC_URL: https://x-access-token:${{ secrets.MIRROR_PAT }}@github.com/hni1991/arena-fa-public.git
         run: |
           git remote add mirror "$PUBLIC_URL" || git remote set-url mirror "$PUBLIC_URL"
-          # همه‌ی برنچ‌ها و تگ‌ها:
+ 
           git push --mirror mirror
 
 
-          
