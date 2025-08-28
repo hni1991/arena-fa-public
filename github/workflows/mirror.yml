@@ -14,7 +14,7 @@ jobs:
           echo -e ".env*\n.supabase/*\n" >> .gitignore
       - name: Push to public mirror
         env:
-          MIRROR_URL: https://github.com/<your-username>/arena-fa-public.git
+          MIRROR_URL: https://github.com/<hni1991>/arena-fa-public.git
         run: |
           git config user.name "mirror-bot"
           git config user.email "mirror@users.noreply.github.com"
