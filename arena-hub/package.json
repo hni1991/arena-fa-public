@@ -12,7 +12,9 @@
     "prepare": "husky install",
     "seed:auth": "node scripts/seed.js auth",
     "seed:data": "node scripts/seed.js data",
-    "seed:all": "node scripts/seed.js all"
+    "seed:all": "node scripts/seed.js all",
+    "schema:dump": "node scripts/dump-schema.mjs",
+    "schema:open": "npm run schema:dump && code schema/schema.md"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.55.0",
