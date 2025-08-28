@@ -30,3 +30,6 @@ jobs:
           git remote add mirror "$PUBLIC_URL" || git remote set-url mirror "$PUBLIC_URL"
           # همه‌ی برنچ‌ها و تگ‌ها:
           git push --mirror mirror
+
+
+          
