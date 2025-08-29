@@ -17,6 +17,7 @@
     "schema:open": "npm run schema:dump && code schema/schema.md"
   },
   "dependencies": {
+    "@prisma/client": "^6.15.0",
     "@supabase/supabase-js": "^2.55.0",
     "csv-parse": "^5.5.6",
     "csv-stringify": "^6.5.0",
@@ -44,17 +45,27 @@
     "postcss": "^8.5.6",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.9",
+    "prisma": "^6.15.0",
     "stylelint": "^16.8.0",
     "stylelint-config-standard": "^36.0.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.9.2"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": ["eslint --fix", "prettier --write"],
-    "*.{css,md,json}": ["prettier --write"]
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,md,json}": [
+      "prettier --write"
+    ]
   },
   "engines": {
     "node": ">=18.18.0"
   },
-  "browserslist": ["defaults", "not IE 11", "maintained node versions"]
+  "browserslist": [
+    "defaults",
+    "not IE 11",
+    "maintained node versions"
+  ]
 }
