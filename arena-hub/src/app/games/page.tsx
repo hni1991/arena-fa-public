@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { Game } from "@/types/db";
+import type { Game } from "@/types/db";
 
 const BANNERS_BUCKET = "game-banners";
 
@@ -26,26 +26,19 @@ export default function GamesIndexPage() {
     })();
   }, []);
 
-  // امضای بنرها
   useEffect(() => {
     let ignore = false;
     (async () => {
-      const toSign = rows.filter(
-        (r) => r.banner_path && !r.banner_path.startsWith("http")
-      );
+      const toSign = rows.filter((r) => r.banner_path && !r.banner_path!.startsWith("http"));
       const entries = await Promise.all(
         toSign.map(async (g) => {
-          const { data } = await supabase.storage
-            .from(BANNERS_BUCKET)
-            .createSignedUrl(g.banner_path!, 3600);
+          const { data } = await supabase.storage.from(BANNERS_BUCKET).createSignedUrl(g.banner_path!, 3600);
           return [String(g.id), data?.signedUrl || ""] as const;
         })
       );
       if (!ignore) {
         const map: Record<string, string> = {};
-        entries.forEach(([id, url]) => {
-          if (url) map[id] = url;
-        });
+        entries.forEach(([id, url]) => url && (map[id] = url));
         setSigned(map);
       }
     })();
@@ -65,29 +58,16 @@ export default function GamesIndexPage() {
       <header className="flex items-center gap-3">
         <h1 className="text-2xl font-bold">🎮 بازی‌ها</h1>
         <div className="flex-1" />
-        <input
-          className="input max-w-xs"
-          placeholder="جستجوی بازی…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
+        <input className="input max-w-xs" placeholder="جستجوی بازی…" value={q} onChange={(e) => setQ(e.target.value)} />
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((g) => (
-          <Link
-            key={g.id}
-            href={`/games/${g.slug}`}
-            className="card overflow-hidden hover:bg-white/5"
-          >
+          <Link key={g.id} href={`/games/${g.slug}`} className="card overflow-hidden hover:bg-white/5">
             <div className="aspect-[16/9] w-full bg-black/30">
               {g.banner_url || g.banner_path ? (
                 <img
-                  src={
-                    g.banner_url
-                      ? g.banner_url
-                      : signed[String(g.id)] || ""
-                  }
+                  src={g.banner_url ? g.banner_url : signed[String(g.id)] || ""}
                   alt={g.title}
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -96,19 +76,11 @@ export default function GamesIndexPage() {
             </div>
             <div className="p-3 flex items-center justify-between">
               <div className="font-bold">{g.title}</div>
-              <span
-                className={`chip ${g.active ? "chip-primary" : ""}`}
-              >
-                {g.active ? "فعال" : "غیرفعال"}
-              </span>
+              <span className={`chip ${g.active ? "chip-primary" : ""}`}>{g.active ? "فعال" : "غیرفعال"}</span>
             </div>
           </Link>
         ))}
-        {filtered.length === 0 && (
-          <div className="card p-4 opacity-70">
-            بازی‌ای مطابق جستجو پیدا نشد.
-          </div>
-        )}
+        {filtered.length === 0 && <div className="card p-4 opacity-70">بازی‌ای مطابق جستجو پیدا نشد.</div>}
       </section>
     </div>
   );
