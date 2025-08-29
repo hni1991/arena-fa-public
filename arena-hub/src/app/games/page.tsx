@@ -3,72 +3,49 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-
-type GameRow = {
-  id: string | number;
-  slug: string;
-  title: string;
-  active: boolean;
-  banner_url?: string | null;
-  banner_path?: string | null;
-};
+import { Game } from "@/types/db";
 
 const BANNERS_BUCKET = "game-banners";
 
 export default function GamesIndexPage() {
-  const [rows, setRows] = useState<GameRow[]>([]);
+  const [rows, setRows] = useState<Game[]>([]);
   const [q, setQ] = useState("");
-  const [signed, setSigned] = useState<Record<string | number, string>>({});
+  const [signed, setSigned] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    let ignore = false;
     (async () => {
       const { data, error } = await supabase
         .from("games")
-        .select("id,slug,title,active,banner_url,banner_path")
-        .order("title", { ascending: true });
-
-      if (!error && data) {
-        const list = data.map((g) => ({
-          id: g.id,
-          slug: g.slug,
-          title: g.title ?? "",
-          active: !!g.active,
-          banner_url: g.banner_url,
-          banner_path: g.banner_path,
-        })) as GameRow[];
-        setRows(list);
+        .select("id,slug,title,active,banner_path,banner_url,description,official_url")
+        .order("title");
+      if (error) {
+        console.error("Error loading games:", error.message);
+        return;
       }
+      setRows((data as Game[]) || []);
     })();
-    return () => {
-      ignore = true;
-    };
   }, []);
 
-  // امضای بنرهایی که path دارند و http نیستند
+  // امضای بنرها
   useEffect(() => {
     let ignore = false;
     (async () => {
       const toSign = rows.filter(
-        (r) => r.banner_path && !String(r.banner_path).startsWith("http")
+        (r) => r.banner_path && !r.banner_path.startsWith("http")
       );
-      if (!toSign.length) return;
-
       const entries = await Promise.all(
-        toSign.map(async (r) => {
-          try {
-            const { data } = await supabase.storage
-              .from(BANNERS_BUCKET)
-              .createSignedUrl(String(r.banner_path), 3600);
-            return [r.id, data?.signedUrl ?? ""] as const;
-          } catch {
-            return [r.id, ""] as const;
-          }
+        toSign.map(async (g) => {
+          const { data } = await supabase.storage
+            .from(BANNERS_BUCKET)
+            .createSignedUrl(g.banner_path!, 3600);
+          return [String(g.id), data?.signedUrl || ""] as const;
         })
       );
       if (!ignore) {
-        const map: Record<string | number, string> = {};
-        for (const [id, url] of entries) if (url) map[id] = url;
+        const map: Record<string, string> = {};
+        entries.forEach(([id, url]) => {
+          if (url) map[id] = url;
+        });
         setSigned(map);
       }
     })();
@@ -86,7 +63,7 @@ export default function GamesIndexPage() {
   return (
     <div className="container mx-auto px-4 py-6 space-y-4">
       <header className="flex items-center gap-3">
-        <h1 className="text-2xl font-bold">بازی‌ها</h1>
+        <h1 className="text-2xl font-bold">🎮 بازی‌ها</h1>
         <div className="flex-1" />
         <input
           className="input max-w-xs"
@@ -97,24 +74,20 @@ export default function GamesIndexPage() {
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((g) => {
-          const img =
-            g.banner_url?.startsWith("http")
-              ? g.banner_url
-              : g.banner_path?.startsWith("http")
-              ? g.banner_path
-              : signed[g.id];
-
-        return (
+        {filtered.map((g) => (
           <Link
-            key={g.slug}
+            key={g.id}
             href={`/games/${g.slug}`}
-            className="card overflow-hidden hover:bg-white/5 transition"
+            className="card overflow-hidden hover:bg-white/5"
           >
             <div className="aspect-[16/9] w-full bg-black/30">
-              {img ? (
+              {g.banner_url || g.banner_path ? (
                 <img
-                  src={img}
+                  src={
+                    g.banner_url
+                      ? g.banner_url
+                      : signed[String(g.id)] || ""
+                  }
                   alt={g.title}
                   className="w-full h-full object-cover"
                   loading="lazy"
@@ -122,15 +95,19 @@ export default function GamesIndexPage() {
               ) : null}
             </div>
             <div className="p-3 flex items-center justify-between">
-              <div className="font-bold truncate">{g.title}</div>
-              <span className={`chip ${g.active ? "chip-primary" : ""}`}>
+              <div className="font-bold">{g.title}</div>
+              <span
+                className={`chip ${g.active ? "chip-primary" : ""}`}
+              >
                 {g.active ? "فعال" : "غیرفعال"}
               </span>
             </div>
           </Link>
-        )})}
-        {!filtered.length && (
-          <div className="card p-4 opacity-70">بازی مطابق جستجو پیدا نشد.</div>
+        ))}
+        {filtered.length === 0 && (
+          <div className="card p-4 opacity-70">
+            بازی‌ای مطابق جستجو پیدا نشد.
+          </div>
         )}
       </section>
     </div>
